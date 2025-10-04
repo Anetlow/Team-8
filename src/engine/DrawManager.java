@@ -275,6 +275,30 @@ public final class DrawManager {
 			drawEntity(dummyShip, 40 + 35 * i, 10);
 	}
 
+    /**
+     * Draws an achievement pop-up message on the screen.
+     *
+     * @param screen Screen where the pop-up will be drawn.
+     *
+     * @param text   The achievement message to display.
+     */
+    public void drawAchievementPopup(final Screen screen, final String text) {
+        int popupWidth = 250;
+        int popupHeight = 50;
+        int x = screen.getWidth() / 2 - popupWidth / 2;
+        int y = 80;
+
+        backBufferGraphics.setColor(new Color(0, 0, 0, 200));
+        backBufferGraphics.fillRoundRect(x, y, popupWidth, popupHeight, 15, 15);
+
+        backBufferGraphics.setColor(Color.YELLOW);
+        backBufferGraphics.drawRoundRect(x, y, popupWidth, popupHeight, 15, 15);
+
+        backBufferGraphics.setFont(fontRegular);
+        backBufferGraphics.setColor(Color.WHITE);
+        drawCenteredRegularString(screen, text, y + popupHeight / 2 + 5);
+    }
+
 	/**
 	 * Draws a thick line from side to side of the screen.
 	 * 

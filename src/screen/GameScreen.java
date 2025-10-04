@@ -72,6 +72,9 @@ public class GameScreen extends Screen {
 	private boolean bonusLife;
     /** Current coin. */
     private int coin;
+    // Achievement popup
+    private String achievementText;
+    private Cooldown achievementPopupCooldown;
 
 	/**
 	 * Constructor, establishes the properties of the screen.
@@ -237,7 +240,14 @@ public class GameScreen extends Screen {
 		drawManager.drawLives(this, this.lives);
 		drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
 
-		// Countdown to game start.
+        if (this.achievementText != null && !this.achievementPopupCooldown.checkFinished()) {
+            drawManager.drawAchievementPopup(this, this.achievementText);
+        } else {
+            this.achievementText = null; // clear once expired
+        }
+
+
+        // Countdown to game start.
 		if (!this.inputDelay.checkFinished()) {
 			int countdown = (int) ((INPUT_DELAY
 					- (System.currentTimeMillis()
@@ -333,8 +343,19 @@ public class GameScreen extends Screen {
 
 		return distanceX < maxDistanceX && distanceY < maxDistanceY;
 	}
+    /**
+     * Shows an achievement popup message on the HUD.
+     *
+     * @param message
+     *      Text to display in the popup.
+     */
+    public void showAchievement(String message) {
+        this.achievementText = message;
+        this.achievementPopupCooldown = Core.getCooldown(2500); // Show for 2.5 seconds
+        this.achievementPopupCooldown.reset();
+    }
 
-	/**
+    /**
 	 * Returns a GameState object representing the status of the game.
 	 * 
 	 * @return Current game state.
