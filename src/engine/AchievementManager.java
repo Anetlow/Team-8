@@ -1,12 +1,10 @@
 package engine;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
+import screen.GameScreen;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 /**
  * Manages all game achievements (including their state, unlocking logic, and persistence).
@@ -14,6 +12,8 @@ import java.util.Scanner;
 public class AchievementManager {
     /** Stores the single instance of the AchievementManager. */
     private static AchievementManager instance;
+    /** Stores the current screen **/
+    private GameScreen currentScreen;
     /** List of all achievements in the game. */
     private List<Achievement> achievements;
     /** Counter for the total number of shots fired by the player. */
@@ -27,10 +27,7 @@ public class AchievementManager {
     /** Flag to ensure the 'Bear Grylls' achievement is unlocked only once. */
     private boolean survivorUnlocked = false;
 
-    /**
-     * Private constructor to initialize the achievement list and load their status.
-     * Part of the Singleton pattern.
-     */
+    /** Private constructor (singleton pattern). */
     private AchievementManager() {
         achievements = new ArrayList<>();
         achievements.add(new Achievement("Beginner", "Clear level 1"));
@@ -45,11 +42,11 @@ public class AchievementManager {
         loadAchievements();
     }
 
-    /**
-     * Provides the global access point to the AchievementManager instance.
-     *
-     * @return The singleton instance of AchievementManager.
-     */
+    public void setCurrentScreen(GameScreen screen) {
+        this.currentScreen = screen;
+    }
+
+    /** Singleton access */
     public static AchievementManager getInstance() {
         if (instance == null) {
             instance = new AchievementManager();
@@ -57,37 +54,41 @@ public class AchievementManager {
         return instance;
     }
 
-    /**
-     * Gets the list of all achievements.
-     *
-     * @return A list of all achievements.
-     */
     public List<Achievement> getAchievements() {
         return achievements;
     }
 
-    /**
-     * Unlocks a specific achievement by name.
-     * If the achievement is found and not already unlocked, it marks it as unlocked
-     * and saves the updated status.
-     *
-     * @param name The name of the achievement to unlock.
-     */
+    private String recentlyUnlocked = null;
+
     public void unlockAchievement(String name) {
         for (Achievement achievement : achievements) {
-            if (achievement.getName().equals(name) && !achievement.isUnlocked()) {
-                achievement.unlock();
+            if (achievement.getName().equals(name)) {
+                // Always set recentlyUnlocked, even if already unlocked
+                recentlyUnlocked = name;
 
-                saveAchievements();
+                // Only unlock and save if not already unlocked
+                if (!achievement.isUnlocked()) {
+                    achievement.unlock();
+                    saveAchievements();
+                }
+
+                // Show the popup directly via GameScreen
+                if (currentScreen != null) {
+                    currentScreen.showAchievement(name);
+                }
+
                 break;
             }
         }
     }
 
-    /**
-     * Handles game events when an enemy is defeated.
-     * Checks for and unlocks achievements related to enemy kills and accuracy.
-     */
+    public String getRecentlyUnlocked() {
+        String temp = recentlyUnlocked;
+        recentlyUnlocked = null; // clear after reading
+        return temp;
+    }
+
+    /** Called when an enemy is defeated */
     public void onEnemyDefeated() {
         if (!firstKillUnlocked) {
             unlockAchievement("First Blood");
@@ -105,12 +106,7 @@ public class AchievementManager {
         }
     }
 
-    /**
-     * Handles game events related to elapsed time.
-     * Checks for and unlocks achievements related to survival time.
-     *
-     * @param elapsedSeconds The total number of seconds elapsed in the game.
-     */
+    /** Called periodically to track elapsed time */
     public void onTimeElapsedSeconds(int elapsedSeconds) {
         if (!survivorUnlocked && elapsedSeconds >= 60) {
             unlockAchievement("Bear Grylls");
@@ -118,29 +114,15 @@ public class AchievementManager {
         }
     }
 
-    /**
-     * Handles the game event when a shot is fired.
-     * Increments the counter for shots fired.
-     */
+    /** Called whenever a shot is fired */
     public void onShotFired() {
         shotsFired++;
     }
 
-    /**
-     * Loads achievement status from file and updates the current achievement list.
-     * <p>
-     * Requests the FileManager to load saved achievement data, then updates
-     * each achievement's unlocked state accordingly.
-     * </p>
-     *
-     * @throws RuntimeException
-     *             If an I/O error occurs while loading achievements.
-     */
+    /** Load achievements from file */
     public void loadAchievements() {
         try {
-            // Ask FileManager to load saved achievement status
             java.util.Map<String, Boolean> unlockedStatus = Core.getFileManager().loadAchievements();
-            // Update the state of each achievement based on the loaded data.
             for (Achievement achievement : achievements) {
                 if (unlockedStatus.getOrDefault(achievement.getName(), false)) {
                     achievement.unlock();
@@ -148,28 +130,17 @@ public class AchievementManager {
             }
         } catch (IOException e) {
             System.err.println("Failed to load achievement file! Creating a new one.");
-            // If file loading fails, attempt an initial save.
             saveAchievements();
         }
     }
-    /**
-     * Saves the current achievement status to file.
-     * <p>
-     * Requests the FileManager to write all current achievements to disk.
-     * </p>
-     *
-     * @throws RuntimeException
-     *             If an I/O error occurs while saving achievements.
-     */
+
+    /** Save achievements to file */
     private void saveAchievements() {
         try {
-            // Ask FileManager to save all current achievement data
             Core.getFileManager().saveAchievements(achievements);
         } catch (IOException e) {
             System.err.println("Failed to save achievement file!");
             e.printStackTrace();
         }
     }
-
-
 }

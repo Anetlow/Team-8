@@ -5,6 +5,7 @@ import engine.Cooldown;
 import engine.Core;
 import engine.GameState;
 import entity.ShopItem;
+import engine.AchievementManager;
 
 /**
  * Implements the shop screen where players can purchase item upgrades.
@@ -79,6 +80,10 @@ public class ShopScreen extends Screen {
     /** Indicates if the shop was opened between levels (true) or from the main menu (false) */
     public boolean betweenLevels;
 
+    /** Achievement popup display. */
+    private String achievementText;
+    private Cooldown achievementPopupCooldown;
+
     /**
      * Constructor, establishes the properties of the screen.
      *
@@ -114,6 +119,14 @@ public class ShopScreen extends Screen {
 
         this.logger.info("Shop screen initialized with " +
                 gameState.getCoin() + " coins. BetweenLevels=" + betweenLevels);
+
+        String recentAchievement = AchievementManager.getInstance().getRecentlyUnlocked();
+        if (recentAchievement != null) {
+            this.achievementText = recentAchievement;
+            this.achievementPopupCooldown = Core.getCooldown(2500);
+            this.achievementPopupCooldown.reset();
+            this.logger.info("Achievement popup queued: " + recentAchievement);
+        }
     }
 
     /**
@@ -357,6 +370,13 @@ public class ShopScreen extends Screen {
         // Draw feedback message
         if (!purchaseFeedbackCooldown.checkFinished()) {
             drawManager.drawShopFeedback(this, feedbackMessage);
+        }
+
+        // Draw achievement popup if one exists (NEW CODE)
+        if (this.achievementText != null && !this.achievementPopupCooldown.checkFinished()) {
+            drawManager.drawAchievementPopup(this, this.achievementText);
+        } else {
+            this.achievementText = null; // Clear once expired
         }
 
         drawManager.completeDrawing(this);
