@@ -1,7 +1,8 @@
-Beginner:false
+Beginner:true
 Intermediate:false
-Boss Slayer:false
+Boss Slayer:true
 Mr. Greedy:false
-First Blood:false
-Bear Grylls:false
-Bad Sniper:false
+First Blood:true
+Bear Grylls:true
+Bad Sniper:true
+Conqueror:false
