@@ -13,19 +13,19 @@ public class OmegaBoss extends MidBoss {
 	/** Initial position in the y-axis. */
 	private static final int INIT_POS_Y = 50;
 	/** Width of Omega */
-	private static final int OMEGA_WIDTH = 32;
+	private static final int OMEGA_WIDTH = 64;
 	/** Height of Omega */
-	private static final int OMEGA_HEIGHT = 14;
+	private static final int OMEGA_HEIGHT = 28;
 	/** Current Health of Omega */
-	private static final int OMEGA_HEALTH = 10;
+	private static final int OMEGA_HEALTH = 45;
 	/** Point of Omega when destroyed */
 	private static final int OMEGA_POINT_VALUE = 500;
 	/** Speed of x in pattern 1 */
 	private static final int PATTERN_1_X_SPEED = 1;
 	/** Speed of x in pattern 2 */
-	private static final int PATTERN_2_X_SPEED = 3;
+	private static final int PATTERN_2_X_SPEED = 4;
 	/** Speed of y in pattern 2 */
-	private static final int PATTERN_2_Y_SPEED = 1;
+	private static final int PATTERN_2_Y_SPEED = 3;
 	/** Color of pattern 2 */
 	private static final Color PATTERN_2_COLOR = Color.MAGENTA;
 	/** Current horizontal movement direction. true for right, false for left. */
@@ -43,7 +43,7 @@ public class OmegaBoss extends MidBoss {
 	public OmegaBoss(Color color,int bottomBoundary) {
 		super(INIT_POS_X, INIT_POS_Y, OMEGA_WIDTH, OMEGA_HEIGHT, OMEGA_HEALTH, OMEGA_POINT_VALUE, color);
 		this.bottomBoundary = bottomBoundary;
-		this.spriteType= DrawManager.SpriteType.EnemyShipSpecial;
+		this.spriteType= DrawManager.SpriteType.OmegaBoss1;
 		this.logger.info("OMEGA : Initializing Boss OMEGA");
 		this.logger.info("OMEGA : move using the default pattern");
 	}
@@ -67,6 +67,7 @@ public class OmegaBoss extends MidBoss {
 		if(this.pattern!=2 && this.healPoint < this.maxHp/2){
 			this.pattern=2;
 			this.color=PATTERN_2_COLOR;
+			this.spriteType = DrawManager.SpriteType.OmegaBoss2;
 			logger.info("OMEGA : move using second pattern");
 		}
 
@@ -127,7 +128,7 @@ public class OmegaBoss extends MidBoss {
 	@Override
 	public void destroy() {
 		this.isDestroyed = true;
-		this.spriteType = DrawManager.SpriteType.Explosion;
+		this.spriteType = DrawManager.SpriteType.OmegaBossDeath;
 		this.logger.info("OMEGA : Boss OMEGA destroyed!");
 	}
 
