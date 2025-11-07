@@ -18,9 +18,9 @@ import audio.SoundManager;
 
 /**
  * Implements the title screen.
- * 
+ *
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
- * 
+ *
  */
 public class TitleScreen extends Screen {
 
@@ -120,9 +120,13 @@ public class TitleScreen extends Screen {
 	/** Random number generator. */
     private Random random;
 
+    /** Player selection state and current choice. */
+    private boolean selectingPlayers;
+    private int playerSelection;
+
 	/**
 	 * Constructor, establishes the properties of the screen.
-	 * 
+	 *
 	 * @param width
 	 *            Screen width.
 	 * @param height
@@ -157,12 +161,14 @@ public class TitleScreen extends Screen {
 		// Initialize rotation angles
 		this.currentAngle = 0;
 		this.targetAngle = 0;
+        this.selectingPlayers = false;
+        this.playerSelection = Core.isTwoPlayerGame() ? 1 : 0;
 	}
 
 
 	/**
 	 * Starts the action.
-	 * 
+	 *
 	 * @return Next screen code.
 	 */
 	public final int run() {
@@ -246,95 +252,130 @@ public class TitleScreen extends Screen {
             this.soundButton.setColor(Color.WHITE);
         }
 
-		draw();
-		if (this.selectionCooldown.checkFinished()
-				&& this.inputDelay.checkFinished()) {
-			if (inputManager.isKeyDown(KeyEvent.VK_UP)
-					|| inputManager.isKeyDown(KeyEvent.VK_W)) {
-				previousMenuItem();
-				this.selectionCooldown.reset();
-			}
-			if (inputManager.isKeyDown(KeyEvent.VK_DOWN)
-					|| inputManager.isKeyDown(KeyEvent.VK_S)) {
-				nextMenuItem();
-				this.selectionCooldown.reset();
-			}
-			if (inputManager.isKeyDown(KeyEvent.VK_SPACE)){
-				if (this.returnCode != 5) {
-					this.isRunning = false;
-				} else {
-					this.soundButton.changeSoundState();
+        draw();
+        boolean readyForInput = this.selectionCooldown.checkFinished()
+                && this.inputDelay.checkFinished();
 
-					if (SoundButton.getIsSoundOn()) {
-						SoundManager.uncutAllSound();
-					} else {
-						SoundManager.cutAllSound();
-					}
+        if (this.selectingPlayers) {
+            if (readyForInput) {
+                if (inputManager.isKeyDown(KeyEvent.VK_UP) || inputManager.isKeyDown(KeyEvent.VK_W)) {
+                    if (this.playerSelection != 0) SoundManager.play("sfx/menu_select.wav");
+                    this.playerSelection = 0;
+                    this.selectionCooldown.reset();
+                } else if (inputManager.isKeyDown(KeyEvent.VK_DOWN) || inputManager.isKeyDown(KeyEvent.VK_S)) {
+                    if (this.playerSelection != 1) SoundManager.play("sfx/menu_select.wav");
+                    this.playerSelection = 1;
+                    this.selectionCooldown.reset();
+                } else if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {
+                    SoundManager.play("sfx/menu_select.wav");
+                    this.selectingPlayers = false;
+                    this.selectionCooldown.reset();
+                } else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
+                    SoundManager.play("sfx/menu_select.wav");
+                    Core.setTwoPlayerGame(this.playerSelection == 1);
+                    this.selectingPlayers = false;
+                    this.returnCode = 2;
+                    this.isRunning = false;
+                }
+            }
+            return;
+        }
 
-					if (this.soundButton.isTeamCreditScreenPossible()) {
-						this.returnCode = 8;
-						this.isRunning = false;
-					} else {
-						this.selectionCooldown.reset();
-					}
-				}
-			}
-			if (inputManager.isKeyDown(KeyEvent.VK_RIGHT)
-					|| inputManager.isKeyDown(KeyEvent.VK_D)) {
-				this.returnCode = 5;
-				this.targetAngle += 90;
-				this.selectionCooldown.reset();
-			}
-			if (this.returnCode == 5 && inputManager.isKeyDown(KeyEvent.VK_LEFT)
-					|| inputManager.isKeyDown(KeyEvent.VK_A)) {
-				this.returnCode = 4;
-				this.targetAngle -= 90;
-				this.selectionCooldown.reset();
-			}
-		}
+        if (readyForInput) {
+            if (inputManager.isKeyDown(KeyEvent.VK_UP) || inputManager.isKeyDown(KeyEvent.VK_W)) {
+                previousMenuItem();
+                this.selectionCooldown.reset();
+            } else if (inputManager.isKeyDown(KeyEvent.VK_DOWN) || inputManager.isKeyDown(KeyEvent.VK_S)) {
+                nextMenuItem();
+                this.selectionCooldown.reset();
+            } else if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
+                if (this.returnCode == 2) {
+                    SoundManager.play("sfx/menu_select.wav");
+                    this.selectingPlayers = true;
+                    this.playerSelection = Core.isTwoPlayerGame() ? 1 : 0;
+                    this.selectionCooldown.reset();
+                } else if (this.returnCode != 5) {
+                    this.isRunning = false;
+                } else {
+                    this.soundButton.changeSoundState();
+                    if (SoundButton.getIsSoundOn()) SoundManager.uncutAllSound(); else SoundManager.cutAllSound();
+                    if (this.soundButton.isTeamCreditScreenPossible()) {
+                        this.returnCode = 8;
+                        this.isRunning = false;
+                    } else {
+                        this.selectionCooldown.reset();
+                    }
+                }
+            } else if (inputManager.isKeyDown(KeyEvent.VK_RIGHT) || inputManager.isKeyDown(KeyEvent.VK_D)) {
+                this.returnCode = 5;
+                this.targetAngle += 90;
+                this.selectionCooldown.reset();
+            } else if (this.returnCode == 5 && (inputManager.isKeyDown(KeyEvent.VK_LEFT) || inputManager.isKeyDown(KeyEvent.VK_A))) {
+                this.returnCode = 4;
+                this.targetAngle -= 90;
+                this.selectionCooldown.reset();
+            }
+        }
 	}
 
 	/**
 	 * Shifts the focus to the next menu item.
 	 */
-	private void nextMenuItem() {
-		SoundManager.play("sfx/menu_select.wav");
-		if (this.returnCode == 2)
-			this.returnCode = 3;
-		else if (this.returnCode == 3)
-			this.returnCode = 6;
-		else if (this.returnCode == 6)
-			this.returnCode = 4;
-		else if (this.returnCode == 4)
-			this.returnCode = 0;
-		else if (this.returnCode == 0)
-			this.returnCode = 2;
-		else if (this.returnCode == 5) {
-			this.returnCode = 0;
-		}
-		this.targetAngle += 90;
-	}
-
+    private void nextMenuItem()
+    {
+        SoundManager.play("sfx/menu_select.wav");
+        switch (this.returnCode)
+        {
+            case 2:
+                this.returnCode = 3;
+                break;
+            case 3:
+                this.returnCode = 6;
+                break;
+            case 6:
+                this.returnCode = 4;
+                break;
+            case 4:
+                this.returnCode = 0;
+                break;
+            case 0:
+                this.returnCode = 2;
+                break;
+            case 5:
+                this.returnCode = 0;
+                break;
+        }
+        this.targetAngle += 90;
+    }
 	/**
 	 * Shifts the focus to the previous menu item.
 	 */
-	private void previousMenuItem() {
-		SoundManager.play("sfx/menu_select.wav");
-		if (this.returnCode == 2)
-			this.returnCode = 0;
-		else if (this.returnCode == 0)
-			this.returnCode = 4;
-		else if (this.returnCode == 4)
-			this.returnCode = 6;
-		else if (this.returnCode == 6)
-			this.returnCode = 3;
-		else if (this.returnCode == 3)
-			this.returnCode = 2;
-		else if (this.returnCode == 5) {
-			this.returnCode = 6;
-		}
-		this.targetAngle -= 90;
-	}
+    private void previousMenuItem()
+    {
+        SoundManager.play("sfx/menu_select.wav");
+        switch (this.returnCode)
+        {
+            case 2:
+                this.returnCode = 0;
+                break;
+            case 0:
+                this.returnCode = 4;
+                break;
+            case 4:
+                this.returnCode = 6;
+                break;
+            case 6:
+                this.returnCode = 3;
+                break;
+            case 3:
+                this.returnCode = 2;
+                break;
+            case 5:
+                this.returnCode = 6;
+                break;
+        }
+        this.targetAngle -= 90;
+    }
 
 	/**
 	 * Draws the elements associated with the screen.
@@ -372,7 +413,10 @@ public class TitleScreen extends Screen {
 		drawManager.drawMenu(this, this.returnCode);
 		drawManager.drawEntity(this.soundButton, this.width * 4 / 5 - 16,
 				this.height * 4 / 5 - 16);
-
+        if (this.selectingPlayers)
+        {
+            drawManager.drawPlayerSelectionOverlay(this, this.playerSelection);
+        }
 		drawManager.completeDrawing(this);
 	}
 

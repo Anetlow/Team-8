@@ -363,6 +363,34 @@ public final class DrawManager {
         drawCenteredRegularString(screen, exitString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 4);
     }
 
+    //1 or 2-player mode selection buttons
+    public void drawPlayerSelectionOverlay(final Screen screen, final int selectedOption)
+    {
+        backBufferGraphics.setColor(new Color(0, 0, 0, 150));
+        backBufferGraphics.fillRect(0, 0, screen.getWidth(), screen.getHeight());
+        int overlayWidth = screen.getWidth() * 3 / 4;
+        int overlayHeight = screen.getHeight() / 3;
+        int overlayX = screen.getWidth() / 2 - overlayWidth / 2;
+        int overlayY = screen.getHeight() / 2 - overlayHeight / 2;
+
+        backBufferGraphics.setColor(new Color(0, 0, 0, 200));
+        backBufferGraphics.fillRoundRect(overlayX, overlayY, overlayWidth, overlayHeight, 20, 20);
+        backBufferGraphics.setColor(Color.GREEN);
+        backBufferGraphics.drawRoundRect(overlayX, overlayY, overlayWidth, overlayHeight, 20, 20);
+
+        drawCenteredBigString(screen, "Select Players", overlayY + fontBigMetrics.getHeight() * 2);
+        backBufferGraphics.setColor(Color.LIGHT_GRAY);
+
+        int firstY = overlayY + overlayHeight / 2 + fontRegularMetrics.getHeight();
+        int secondY = firstY + fontRegularMetrics.getHeight() * 2;
+        Color highlight = new Color(0, 0.8f, 0.2f);
+
+        backBufferGraphics.setColor(selectedOption == 0 ? highlight : Color.WHITE);
+        drawCenteredRegularString(screen, "1 Player", firstY);
+
+        backBufferGraphics.setColor(selectedOption == 1 ? highlight : Color.WHITE);
+        drawCenteredRegularString(screen, "2 Players", secondY);
+    }
     /**
      * Draws game results.
      */

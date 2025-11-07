@@ -117,7 +117,7 @@ public class GameScreen extends Screen {
             this.scoreP1 += pts;   // Default to P1 (for null compatibility)
 
         }
-        this.score += pts;        // Keep maintaining the total score, for legacy process compatibility
+        this.score += pts;         // Keep maintaining the total score, for legacy process compatibility
 
     }
 
@@ -197,7 +197,14 @@ public class GameScreen extends Screen {
 
         this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.pink);
         this.shipP2.setPlayerId(2); // === [ADD] Player2 ===
-        // special enemy initial
+
+        // If the game is not set to 2player mode : remove the second player's ship
+        if (!Core.isTwoPlayerGame())
+        {
+            this.shipP2 = null;
+        }
+
+        // Special enemy initial
         enemyShipSpecialFormation = new EnemyShipSpecialFormation(this.currentLevel,
                 Core.getVariableCooldown(BONUS_SHIP_INTERVAL, BONUS_SHIP_VARIANCE),
                 Core.getCooldown(BONUS_SHIP_EXPLOSION));
@@ -448,11 +455,18 @@ public class GameScreen extends Screen {
             drawManager.drawEntity(dropItem, dropItem.getPositionX(), dropItem.getPositionY());
 
         // Interface.
-        drawManager.drawScore(this, this.scoreP1);   // Top line still displays P1
-        drawManager.drawScoreP2(this, this.scoreP2); // Added second line for P2
-        drawManager.drawCoin(this,this.coin);
+        // Display game elements depending on the number of active players
+        drawManager.drawScore(this, this.scoreP1);
+        if (Core.isTwoPlayerGame())
+        {
+            drawManager.drawScoreP2(this, this.scoreP2);
+        }
+        drawManager.drawCoin(this, this.coin);
         drawManager.drawLives(this, this.livesP1);
-        drawManager.drawLivesP2(this, this.livesP2);
+        if (Core.isTwoPlayerGame())
+        {
+            drawManager.drawLivesP2(this, this.livesP2);
+        }
         drawManager.drawTime(this, this.elapsedTime);
         drawManager.drawItemsHUD(this);
         drawManager.drawLevel(this, this.currentLevel.getLevelName());
