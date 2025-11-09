@@ -30,6 +30,14 @@ import screen.*;
  */
 public final class Core {
 
+    //The two-player or simple player game mode
+    private static boolean isTwoPlayerGame = false;
+    public static boolean isTwoPlayerGame()
+    {
+        return isTwoPlayerGame;
+    }
+    public static void setTwoPlayerGame(final boolean enabled) { isTwoPlayerGame = enabled; }
+
 	/** Width of current screen. */
 	private static final int WIDTH = 448;
 	/** Height of current screen. */
@@ -88,12 +96,12 @@ public final class Core {
 		int height = frame.getHeight();
 
 		levelManager = new LevelManager();
-		GameState gameState = new GameState(1, 0, MAX_LIVES, MAX_LIVES, 0, 0,0);
+        GameState gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, 0);
 
 
         int returnCode = 1;
 		do {
-            gameState = new GameState(1, 0, MAX_LIVES,MAX_LIVES, 0, 0,gameState.getCoin());
+            gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, gameState.getCoin());
 			switch (returnCode) {
                 case 1:
                     // Main menu.
@@ -158,7 +166,7 @@ public final class Core {
                             LOGGER.info("Closing shop screen.");
 
                             gameState = new GameState(
-                                    gameState.getLevel() + 1,          // Increment level
+                                    gameState.getLevel() + 1,     // Increment level
                                     gameState.getScore(),              // Keep current score
                                     gameState.getLivesRemaining(),     // Keep remaining lives
 									gameState.getLivesRemainingP2(),   // Keep remaining livesP2
