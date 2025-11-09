@@ -141,10 +141,12 @@ public class Ship extends Entity {
 	/**
 	 * Updates status of the ship.
 	 */
-	public final void update() {
+    public final void update() {
         if (this.isInvincible && this.shieldCooldown.checkFinished()) {
             this.isInvincible = false;
-            this.setColor(Color.GREEN);
+            // Restore to selected color from ShipColorManager instead of hardcoded GREEN
+            engine.ShipColorManager colorManager = engine.ShipColorManager.getInstance();
+            this.setColor(colorManager.getSelectedColor());
         }
 
         if (!this.destructionCooldown.checkFinished())
