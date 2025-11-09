@@ -1,5 +1,7 @@
 package engine;
 
+import java.awt.Color;
+
 /**
  * Represents a single achievement in the game.
  */
@@ -10,6 +12,8 @@ public class Achievement {
     private String description;
     /** The unlock status of the achievement. */
     private boolean unlocked;
+    /** The reward color for this achievement (null if no reward). */
+    private Color rewardColor;
 
     /**
      * Constructor for the Achievement.
@@ -21,6 +25,21 @@ public class Achievement {
         this.name = name;
         this.description = description;
         this.unlocked = false;
+        this.rewardColor = null;
+    }
+
+    /**
+     * Constructor for the Achievement with a reward color.
+     *
+     * @param name        The name of the achievement.
+     * @param description A description of the achievement.
+     * @param rewardColor The color reward for unlocking this achievement.
+     */
+    public Achievement(String name, String description, Color rewardColor) {
+        this.name = name;
+        this.description = description;
+        this.unlocked = false;
+        this.rewardColor = rewardColor;
     }
 
     /**
@@ -55,5 +74,23 @@ public class Achievement {
      */
     public void unlock() {
         this.unlocked = true;
+    }
+
+    /**
+     * Gets the reward color for this achievement.
+     *
+     * @return The reward color, or null if there is no reward.
+     */
+    public Color getRewardColor() {
+        return rewardColor;
+    }
+
+    /**
+     * Checks if this achievement has a reward.
+     *
+     * @return True if this achievement has a reward color.
+     */
+    public boolean hasReward() {
+        return rewardColor != null;
     }
 }

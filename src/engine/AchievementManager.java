@@ -2,6 +2,7 @@ package engine;
 
 import screen.GameScreen;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,16 +31,19 @@ public class AchievementManager {
     /** Private constructor (singleton pattern). */
     private AchievementManager() {
         achievements = new ArrayList<>();
-        achievements.add(new Achievement("Beginner", "Clear level 1"));
-        achievements.add(new Achievement("Intermediate", "Clear level 3"));
-        achievements.add(new Achievement("Boss Slayer", "Defeat a boss"));
-        achievements.add(new Achievement("Mr. Greedy", "Have more than 2000 coins"));
-        achievements.add(new Achievement("First Blood", "Defeat your first enemy"));
-        achievements.add(new Achievement("Bear Grylls", "Survive for 60 seconds"));
-        achievements.add(new Achievement("Bad Sniper", "Under 80% accuracy"));
-        achievements.add(new Achievement("Conqueror", "Clear the final level"));
+        // Assign achievement colors to achievements
+        achievements.add(new Achievement("Beginner", "Clear level 1", ShipColorManager.ACHIEVEMENT_COLORS[0]));
+        achievements.add(new Achievement("Intermediate", "Clear level 3", ShipColorManager.ACHIEVEMENT_COLORS[1]));
+        achievements.add(new Achievement("Boss Slayer", "Defeat a boss", ShipColorManager.ACHIEVEMENT_COLORS[2]));
+        achievements.add(new Achievement("Mr. Greedy", "Have more than 2000 coins", ShipColorManager.ACHIEVEMENT_COLORS[3]));
+        achievements.add(new Achievement("First Blood", "Defeat your first enemy", ShipColorManager.ACHIEVEMENT_COLORS[4]));
+        achievements.add(new Achievement("Bear Grylls", "Survive for 60 seconds", ShipColorManager.ACHIEVEMENT_COLORS[5]));
+        achievements.add(new Achievement("Bad Sniper", "Under 80% accuracy", ShipColorManager.ACHIEVEMENT_COLORS[6]));
+        achievements.add(new Achievement("Conqueror", "Clear the final level", ShipColorManager.ACHIEVEMENT_COLORS[7]));
 
         loadAchievements();
+        // Unlock colors for achievements that were already unlocked
+        unlockAchievementRewards();
     }
 
     public void setCurrentScreen(GameScreen screen) {
@@ -69,6 +73,13 @@ public class AchievementManager {
                 // Only unlock and save if not already unlocked
                 if (!achievement.isUnlocked()) {
                     achievement.unlock();
+                    
+                    // Unlock the reward color if the achievement has one
+                    if (achievement.hasReward()) {
+                        ShipColorManager colorManager = ShipColorManager.getInstance();
+                        colorManager.unlockColor(achievement.getRewardColor());
+                    }
+                    
                     saveAchievements();
                 }
 
@@ -80,6 +91,25 @@ public class AchievementManager {
                 break;
             }
         }
+    }
+    
+    /**
+     * Unlocks reward colors for achievements that were already unlocked (when loading from file).
+     */
+    private void unlockAchievementRewards() {
+        ShipColorManager colorManager = ShipColorManager.getInstance();
+        for (Achievement achievement : achievements) {
+            if (achievement.isUnlocked() && achievement.hasReward()) {
+                colorManager.unlockColor(achievement.getRewardColor());
+            }
+        }
+    }
+    
+    /**
+     * Public method to restore achievement reward colors (called after ShipColorManager reset).
+     */
+    public void restoreAchievementRewards() {
+        unlockAchievementRewards();
     }
 
     public String getRecentlyUnlocked() {

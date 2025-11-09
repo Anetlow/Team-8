@@ -62,6 +62,30 @@ public class ShipColorManager {
         "Lime Green"
     };
     
+    /** Available colors for achievements (different from gacha colors). */
+    public static final Color[] ACHIEVEMENT_COLORS = {
+        new Color(255, 0, 255),  // Magenta (Vibrant)
+        new Color(0, 255, 255),  // Cyan (Bright)
+        new Color(255, 140, 0),  // Dark Orange
+        new Color(148, 0, 211),  // Dark Violet
+        new Color(255, 20, 20),  // Bright Red
+        new Color(0, 250, 154),  // Medium Spring Green
+        new Color(255, 105, 180), // Hot Pink
+        new Color(75, 0, 130)    // Indigo
+    };
+    
+    /** Achievement color names for display. */
+    public static final String[] ACHIEVEMENT_COLOR_NAMES = {
+        "Vibrant Magenta",
+        "Bright Cyan",
+        "Dark Orange",
+        "Dark Violet",
+        "Bright Red",
+        "Spring Green",
+        "Hot Pink",
+        "Indigo"
+    };
+    
     /**
      * Private constructor for singleton.
      */
@@ -156,11 +180,19 @@ public class ShipColorManager {
      * @return Color name.
      */
     public static String getColorName(final Color color) {
+        // Check gacha colors
         for (int i = 0; i < GACHA_COLORS.length; i++) {
             if (GACHA_COLORS[i].equals(color)) {
                 return COLOR_NAMES[i];
             }
         }
+        // Check achievement colors
+        for (int i = 0; i < ACHIEVEMENT_COLORS.length; i++) {
+            if (ACHIEVEMENT_COLORS[i].equals(color)) {
+                return ACHIEVEMENT_COLOR_NAMES[i];
+            }
+        }
+        // Check default color
         if (DEFAULT_COLOR.equals(color)) {
             return "Green";
         }
@@ -180,6 +212,53 @@ public class ShipColorManager {
             }
         }
         return -1;
+    }
+    
+    /**
+     * Gets a list of all available colors (gacha + achievement + default).
+     * 
+     * @return List of all colors.
+     */
+    public static java.util.List<Color> getAllAvailableColors() {
+        java.util.List<Color> allColors = new java.util.ArrayList<Color>();
+        allColors.add(DEFAULT_COLOR);
+        for (Color color : GACHA_COLORS) {
+            allColors.add(color);
+        }
+        for (Color color : ACHIEVEMENT_COLORS) {
+            allColors.add(color);
+        }
+        return allColors;
+    }
+    
+    /**
+     * Checks if a color is from the achievement pool.
+     * 
+     * @param color Color to check.
+     * @return True if it's an achievement color.
+     */
+    public static boolean isAchievementColor(final Color color) {
+        for (Color achievementColor : ACHIEVEMENT_COLORS) {
+            if (achievementColor.equals(color)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Checks if a color is from the gacha pool.
+     * 
+     * @param color Color to check.
+     * @return True if it's a gacha color.
+     */
+    public static boolean isGachaColor(final Color color) {
+        for (Color gachaColor : GACHA_COLORS) {
+            if (gachaColor.equals(color)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

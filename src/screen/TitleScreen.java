@@ -333,6 +333,9 @@ public class TitleScreen extends Screen {
                 this.returnCode = 6;
                 break;
             case 6:
+                this.returnCode = 7;
+                break;
+            case 7:
                 this.returnCode = 4;
                 break;
             case 4:
@@ -362,6 +365,9 @@ public class TitleScreen extends Screen {
                 this.returnCode = 4;
                 break;
             case 4:
+                this.returnCode = 7;
+                break;
+            case 7:
                 this.returnCode = 6;
                 break;
             case 6:
@@ -371,7 +377,7 @@ public class TitleScreen extends Screen {
                 this.returnCode = 2;
                 break;
             case 5:
-                this.returnCode = 6;
+                this.returnCode = 7;
                 break;
         }
         this.targetAngle -= 90;

@@ -335,6 +335,7 @@ public final class DrawManager {
         String playString = "Play";
         String highScoresString = "High scores";
         String achievementsString = "Achievements";
+        String customizationString = "Customization";
         String shopString = "Shop";
         String exitString = "Exit";
 
@@ -354,13 +355,17 @@ public final class DrawManager {
         else backBufferGraphics.setColor(Color.WHITE);
         drawCenteredRegularString(screen, achievementsString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
 
+        if (option == 7) backBufferGraphics.setColor(pulseColor);
+        else backBufferGraphics.setColor(Color.WHITE);
+        drawCenteredRegularString(screen, customizationString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
+
         if (option == 4) backBufferGraphics.setColor(pulseColor);
         else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, shopString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
+        drawCenteredRegularString(screen, shopString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 4);
 
         if (option == 0) backBufferGraphics.setColor(pulseColor);
         else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, exitString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 4);
+        drawCenteredRegularString(screen, exitString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 5);
     }
 
     //1 or 2-player mode selection buttons
@@ -482,6 +487,106 @@ public final class DrawManager {
             drawCenteredRegularString(screen, achievement.getName() + " - " + achievement.getDescription(), screen.getHeight() / 5 + fontRegularMetrics.getHeight() * (i + 1) * 2);
             i++;
         }
+        backBufferGraphics.setColor(Color.GRAY);
+        drawCenteredRegularString(screen, "Press ESC to return", screen.getHeight() - 50);
+    }
+
+    /**
+     * Draws the customization screen where players can select their ship color.
+     *
+     * @param screen Screen to draw on.
+     * @param unlockedColors List of unlocked colors.
+     * @param selectedIndex Index of the currently selected color.
+     */
+    public void drawCustomizationScreen(final Screen screen, final java.util.List<Color> unlockedColors, final int selectedIndex) {
+        // Draw title
+        backBufferGraphics.setColor(Color.GREEN);
+        drawCenteredBigString(screen, "Customization", screen.getHeight() / 8);
+        
+        if (unlockedColors.isEmpty()) {
+            // No colors unlocked
+            backBufferGraphics.setColor(Color.YELLOW);
+            drawCenteredRegularString(screen, "No colors unlocked yet!", screen.getHeight() / 2);
+            backBufferGraphics.setColor(Color.GRAY);
+            drawCenteredRegularString(screen, "Unlock colors through gacha or achievements", screen.getHeight() / 2 + 30);
+            drawCenteredRegularString(screen, "Press ESC to return", screen.getHeight() - 50);
+            return;
+        }
+        
+        // Draw currently selected color indicator
+        ShipColorManager colorManager = ShipColorManager.getInstance();
+        Color currentSelected = colorManager.getSelectedColor();
+        backBufferGraphics.setColor(Color.CYAN);
+        String currentString = "Current: " + ShipColorManager.getColorName(currentSelected);
+        drawCenteredRegularString(screen, currentString, screen.getHeight() / 6);
+        
+        // Draw instructions
+        backBufferGraphics.setColor(Color.GRAY);
+        drawCenteredRegularString(screen, "W/S: Navigate | SPACE: Select | ESC: Return", screen.getHeight() / 5);
+        
+        // Calculate starting Y position for color list
+        int startY = screen.getHeight() / 4 + 40;
+        int lineSpacing = 50;
+        int maxVisible = (screen.getHeight() - startY - 100) / lineSpacing;
+        
+        // Draw colors
+        int displayStart = Math.max(0, selectedIndex - maxVisible / 2);
+        int displayEnd = Math.min(unlockedColors.size(), displayStart + maxVisible);
+        
+        for (int i = displayStart; i < displayEnd; i++) {
+            Color color = unlockedColors.get(i);
+            int yPos = startY + (i - displayStart) * lineSpacing;
+            
+            // Highlight selected color
+            if (i == selectedIndex) {
+                // Draw selection background
+                float pulse = (float) ((Math.sin(System.currentTimeMillis() / 200.0) + 1.0) / 2.0);
+                Color pulseColor = new Color(0, 0.5f + pulse * 0.5f, 0);
+                backBufferGraphics.setColor(new Color(pulseColor.getRed(), pulseColor.getGreen(), pulseColor.getBlue(), 100));
+                backBufferGraphics.fillRect(screen.getWidth() / 4, yPos - 20, screen.getWidth() / 2, 35);
+                
+                // Draw selection arrow
+                backBufferGraphics.setColor(Color.GREEN);
+                backBufferGraphics.drawString(">", screen.getWidth() / 4 - 20, yPos);
+            }
+            
+            // Draw color box
+            int colorBoxSize = 30;
+            int colorBoxX = screen.getWidth() / 2 - 150;
+            int colorBoxY = yPos - colorBoxSize / 2;
+            backBufferGraphics.setColor(color);
+            backBufferGraphics.fillRect(colorBoxX, colorBoxY, colorBoxSize, colorBoxSize);
+            backBufferGraphics.setColor(Color.WHITE);
+            backBufferGraphics.drawRect(colorBoxX, colorBoxY, colorBoxSize, colorBoxSize);
+            
+            // Draw color name
+            String colorName = ShipColorManager.getColorName(color);
+            if (i == selectedIndex) {
+                backBufferGraphics.setColor(Color.GREEN);
+            } else {
+                backBufferGraphics.setColor(Color.WHITE);
+            }
+            backBufferGraphics.drawString(colorName, colorBoxX + colorBoxSize + 20, yPos);
+            
+            // Draw "Selected" indicator if this is the currently selected color
+            if (color.equals(currentSelected)) {
+                backBufferGraphics.setColor(Color.CYAN);
+                backBufferGraphics.drawString("(Selected)", colorBoxX + colorBoxSize + 20 + fontRegularMetrics.stringWidth(colorName) + 10, yPos);
+            }
+        }
+        
+        // Draw scroll indicator if there are more colors
+        if (unlockedColors.size() > maxVisible) {
+            backBufferGraphics.setColor(Color.GRAY);
+            if (displayStart > 0) {
+                drawCenteredRegularString(screen, "^ More colors above ^", startY - 20);
+            }
+            if (displayEnd < unlockedColors.size()) {
+                drawCenteredRegularString(screen, "v More colors below v", startY + maxVisible * lineSpacing + 10);
+            }
+        }
+        
+        // Draw instructions at bottom
         backBufferGraphics.setColor(Color.GRAY);
         drawCenteredRegularString(screen, "Press ESC to return", screen.getHeight() - 50);
     }

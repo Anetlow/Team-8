@@ -96,8 +96,19 @@ public final class Core {
 		int height = frame.getHeight();
 
 		levelManager = new LevelManager();
-        GameState gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, 100);
+        
+        // Initialize AchievementManager to load achievements and unlock their reward colors
+        AchievementManager.getInstance();
+        
+        // Reset ship colors only at program startup (not between games)
+        // This ensures colors are reset when restarting the program, but preserved between games
+        ShipColorManager.reset();
+        // Restore achievement reward colors after reset (achievements are persistent)
+        AchievementManager.getInstance().restoreAchievementRewards();
 
+        // Initialize coins at program startup (will be preserved between games)
+        int persistentCoins = 100;
+        GameState gameState = null; // Will be initialized when starting first game
 
         int returnCode = 1;
 		do {
@@ -113,12 +124,16 @@ public final class Core {
                     LOGGER.info("Closing title screen.");
                     break;
                 case 2:
-                    // Reset ship colors for new game session
-                    ShipColorManager.reset();
+                    // Reset shop items for new game session
+                    // Colors and coins are NOT reset - they persist between games in the same session
                     ShopItem.resetAllItems();
-                    // Reset coins to 100 for new game
-                    gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, 100);
-                    LOGGER.info("Starting new game - reset ship colors, items, and coins to 100.");
+                    // Use persistent coins (not reset to 100)
+                    // If gameState exists from previous game, use its coins, otherwise use persistentCoins
+                    if (gameState != null) {
+                        persistentCoins = gameState.getCoin();
+                    }
+                    gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, persistentCoins);
+                    LOGGER.info("Starting new game - reset items. Colors and coins preserved. Coins: " + persistentCoins);
                     do {
                         // One extra life every few levels
                         boolean bonusLife = gameState.getLevel()
@@ -172,6 +187,9 @@ public final class Core {
 
                             frame.setScreen(currentScreen);
                             LOGGER.info("Closing shop screen.");
+                            
+                            // Update persistent coins after shop usage (GameState is mutable, so changes are already in gameState)
+                            persistentCoins = gameState.getCoin();
 
                             gameState = new GameState(
                                     gameState.getLevel() + 1,     // Increment level
@@ -180,7 +198,7 @@ public final class Core {
 									gameState.getLivesRemainingP2(),   // Keep remaining livesP2
                                     gameState.getBulletsShot(),        // Keep bullets fired
                                     gameState.getShipsDestroyed(),     // Keep ships destroyed
-                                    gameState.getCoin()                // Keep current coins
+                                    gameState.getCoin()                // Keep current coins (already updated by ShopScreen)
                             );
                         } else {
                             // Player has no lives - game over, break out of loop
@@ -192,6 +210,11 @@ public final class Core {
 
 					SoundManager.stopAll();
 					SoundManager.play("sfx/gameover.wav");
+
+                    // Save coins from finished game before showing score screen
+                    if (gameState != null) {
+                        persistentCoins = gameState.getCoin();
+                    }
 
                     LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
                             + " score screen at " + FPS + " fps, with a score of "
@@ -214,11 +237,22 @@ public final class Core {
                     break;
                 case 4:
                     // Shop opened manually from main menu
-
-                    currentScreen = new ShopScreen(gameState, width, height, FPS, false);
-                    LOGGER.info("Starting shop screen (menu) with " + gameState.getCoin() + " coins.");
+                    // Create a temporary GameState if needed, using persistent coins
+                    GameState shopGameState;
+                    if (gameState != null) {
+                        shopGameState = gameState;
+                    } else {
+                        shopGameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, persistentCoins);
+                        gameState = shopGameState;
+                    }
+                    
+                    currentScreen = new ShopScreen(shopGameState, width, height, FPS, false);
+                    LOGGER.info("Starting shop screen (menu) with " + shopGameState.getCoin() + " coins.");
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing shop screen (menu).");
+                    
+                    // Update persistent coins from shop screen (GameState is mutable, so changes are already reflected)
+                    persistentCoins = shopGameState.getCoin();
                     break;
                 case 6:
                     // Achievements
@@ -227,6 +261,14 @@ public final class Core {
                             + " achievement screen at " + FPS + " fps.");
                     returnCode = frame.setScreen(currentScreen);
                     LOGGER.info("Closing achievement screen.");
+                    break;
+                case 7:
+                    // Customization
+                    currentScreen = new CustomizationScreen(width, height, FPS);
+                    LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
+                            + " customization screen at " + FPS + " fps.");
+                    returnCode = frame.setScreen(currentScreen);
+                    LOGGER.info("Closing customization screen.");
                     break;
 				case 8: // (추가) CreditScreen
 					currentScreen = new CreditScreen(width, height, FPS);
