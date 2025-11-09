@@ -70,8 +70,13 @@ public class ShopScreen extends Screen {
     /** Maximum levels for each item. */
     private static final int[] MAX_LEVELS = {3, 5, 2, 3, 5};
 
-    /** Mode: 0 = selecting item, 1 = selecting level. */
+    /** Mode: -1 = selecting tab, 0 = selecting item, 1 = selecting level. */
     private int selectionMode;
+
+    /** Current tab: 0 = Items, 1 = Gacha. */
+    private int selectedTab;
+    private static final int TAB_ITEMS = 0;
+    private static final int TAB_GACHA = 1;
 
     /** Cooldown for purchase feedback. */
     private Cooldown purchaseFeedbackCooldown;
@@ -104,7 +109,8 @@ public class ShopScreen extends Screen {
         this.gameState = gameState;
         this.selectedItem = 0;
         this.selectedLevel = 1;
-        this.selectionMode = 0;
+        this.selectedTab = TAB_ITEMS;
+        this.selectionMode = -1; // Start in tab selection mode
 
         this.betweenLevels = betweenLevels;
 
@@ -150,7 +156,10 @@ public class ShopScreen extends Screen {
         if (this.selectionCooldown.checkFinished()
                 && this.inputDelay.checkFinished()) {
 
-            if (selectionMode == 0) {
+            if (selectionMode == -1) {
+                // Tab selection mode
+                handleTabSelection();
+            } else if (selectionMode == 0) {
                 // Item selection mode
                 handleItemSelection();
             } else {
@@ -158,6 +167,57 @@ public class ShopScreen extends Screen {
                 handleLevelSelection();
             }
         }
+    }
+
+    /**
+     * Handles input when selecting tabs.
+     */
+    private void handleTabSelection() {
+        // Navigate left/right between tabs
+        if (inputManager.isKeyDown(KeyEvent.VK_LEFT)
+                || inputManager.isKeyDown(KeyEvent.VK_A)) {
+            selectedTab = TAB_ITEMS;
+            this.selectionCooldown.reset();
+        }
+
+        if (inputManager.isKeyDown(KeyEvent.VK_RIGHT)
+                || inputManager.isKeyDown(KeyEvent.VK_D)) {
+            selectedTab = TAB_GACHA;
+            this.selectionCooldown.reset();
+        }
+
+        // Enter selected tab
+        if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
+            if (selectedTab == TAB_ITEMS) {
+                // Enter items tab
+                selectionMode = 0;
+                selectedItem = 0;
+            } else if (selectedTab == TAB_GACHA) {
+                // Enter gacha screen
+                openGachaScreen();
+            }
+            this.selectionCooldown.reset();
+        }
+
+        // Exit shop
+        if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {
+            this.isRunning = false;
+        }
+    }
+
+    /**
+     * Opens the gacha screen.
+     */
+    private void openGachaScreen() {
+        GachaScreen gachaScreen = new GachaScreen(gameState, this.width,
+                this.height, this.fps, this.betweenLevels);
+        int gachaReturnCode = gachaScreen.run();
+        
+        // Update gameState in case coins were spent
+        // (gameState is passed by reference, so it should be updated)
+        
+        // After gacha screen closes, return to tab selection
+        selectionMode = -1;
     }
 
     /**
@@ -181,8 +241,8 @@ public class ShopScreen extends Screen {
         // Select item (enter level selection)
         if (inputManager.isKeyDown(KeyEvent.VK_SPACE)) {
             if (selectedItem == TOTAL_ITEMS) {
-                // Exit option selected
-                this.isRunning = false;
+                // Exit option selected - go back to tab selection
+                selectionMode = -1;
             } else {
                 // Enter level selection mode
                 selectionMode = 1;
@@ -194,9 +254,10 @@ public class ShopScreen extends Screen {
             this.selectionCooldown.reset();
         }
 
-        // Quick exit with ESC
+        // Go back to tab selection with ESC
         if (inputManager.isKeyDown(KeyEvent.VK_ESCAPE)) {
-            this.isRunning = false;
+            selectionMode = -1;
+            this.selectionCooldown.reset();
         }
     }
 
@@ -362,14 +423,20 @@ public class ShopScreen extends Screen {
     private void draw() {
         drawManager.initDrawing(this);
 
-        drawManager.drawShopScreen(this, gameState.getCoin(), selectedItem,
-                selectionMode, selectedLevel, TOTAL_ITEMS,
-                ITEM_NAMES, ITEM_DESCRIPTIONS, ITEM_PRICES,
-                MAX_LEVELS, this);
+        if (selectionMode == -1) {
+            // Draw tab selection
+            drawManager.drawShopTabSelection(this, gameState.getCoin(), selectedTab);
+        } else {
+            // Draw items screen
+            drawManager.drawShopScreen(this, gameState.getCoin(), selectedItem,
+                    selectionMode, selectedLevel, TOTAL_ITEMS,
+                    ITEM_NAMES, ITEM_DESCRIPTIONS, ITEM_PRICES,
+                    MAX_LEVELS, this);
 
-        // Draw feedback message
-        if (!purchaseFeedbackCooldown.checkFinished()) {
-            drawManager.drawShopFeedback(this, feedbackMessage);
+            // Draw feedback message
+            if (!purchaseFeedbackCooldown.checkFinished()) {
+                drawManager.drawShopFeedback(this, feedbackMessage);
+            }
         }
 
         // Draw achievement popup if one exists (NEW CODE)

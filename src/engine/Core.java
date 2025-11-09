@@ -96,12 +96,11 @@ public final class Core {
 		int height = frame.getHeight();
 
 		levelManager = new LevelManager();
-        GameState gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, 0);
+        GameState gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, 100);
 
 
         int returnCode = 1;
 		do {
-            gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, gameState.getCoin());
 			switch (returnCode) {
                 case 1:
                     // Main menu.
@@ -114,6 +113,12 @@ public final class Core {
                     LOGGER.info("Closing title screen.");
                     break;
                 case 2:
+                    // Reset ship colors for new game session
+                    ShipColorManager.reset();
+                    ShopItem.resetAllItems();
+                    // Reset coins to 100 for new game
+                    gameState = new GameState(1, 0, MAX_LIVES, isTwoPlayerGame ? MAX_LIVES : 0, 0, 0, 100);
+                    LOGGER.info("Starting new game - reset ship colors, items, and coins to 100.");
                     do {
                         // One extra life every few levels
                         boolean bonusLife = gameState.getLevel()
@@ -152,6 +157,9 @@ public final class Core {
                         frame.setScreen(currentScreen);
                         LOGGER.info("Closing game screen.");
                         gameState = ((GameScreen) currentScreen).getGameState();
+                        
+                        // Only open shop if player has lives remaining (level completed successfully)
+                        // If no lives, game over - exit loop and go to score screen
                         if (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0) {
 							SoundManager.stopAll();
 							SoundManager.play("sfx/levelup.wav");
@@ -174,9 +182,13 @@ public final class Core {
                                     gameState.getShipsDestroyed(),     // Keep ships destroyed
                                     gameState.getCoin()                // Keep current coins
                             );
+                        } else {
+                            // Player has no lives - game over, break out of loop
+                            LOGGER.info("Game over - no lives remaining. Going to score screen.");
+                            break;
                         }
                         // Loop while player still has lives and levels remaining
-                    } while (gameState.getLivesRemaining() > 0 || gameState.getLivesRemainingP2() > 0);
+                    } while (true); // Changed to infinite loop, break on game over
 
 					SoundManager.stopAll();
 					SoundManager.play("sfx/gameover.wav");

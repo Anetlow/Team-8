@@ -705,6 +705,188 @@ public final class DrawManager {
     }
 
     /**
+     * Draws the shop tab selection screen.
+     */
+    public void drawShopTabSelection(final Screen screen, final int coinBalance, final int selectedTab) {
+        // Draw title
+        backBufferGraphics.setColor(Color.GREEN);
+        drawCenteredBigString(screen, "SHOP", screen.getHeight() / 8);
+        
+        // Draw coin balance
+        backBufferGraphics.setColor(Color.YELLOW);
+        String balanceString = String.format("Your Balance: %d coins", coinBalance);
+        drawCenteredRegularString(screen, balanceString, 120);
+        
+        // Draw instructions
+        backBufferGraphics.setColor(Color.GRAY);
+        String instructions = "A/D: Select Tab | SPACE: Enter | ESC: Exit";
+        drawCenteredRegularString(screen, instructions, 145);
+        
+        // Draw tabs
+        int centerX = screen.getWidth() / 2;
+        int tabY = screen.getHeight() / 2 - 50;
+        int tabWidth = 200;
+        int tabHeight = 80;
+        
+        // Items tab
+        if (selectedTab == 0) {
+            backBufferGraphics.setColor(Color.GREEN);
+        } else {
+            backBufferGraphics.setColor(Color.WHITE);
+        }
+        int itemsX = centerX - tabWidth - 20;
+        backBufferGraphics.fillRoundRect(itemsX, tabY, tabWidth, tabHeight, 10, 10);
+        backBufferGraphics.setColor(Color.BLACK);
+        backBufferGraphics.setFont(fontBig);
+        FontMetrics metrics = backBufferGraphics.getFontMetrics();
+        String itemsText = "ITEMS";
+        int textX = itemsX + (tabWidth - metrics.stringWidth(itemsText)) / 2;
+        int textY = tabY + tabHeight / 2 + metrics.getHeight() / 3;
+        backBufferGraphics.drawString(itemsText, textX, textY);
+        
+        // Gacha tab
+        if (selectedTab == 1) {
+            backBufferGraphics.setColor(Color.GREEN);
+        } else {
+            backBufferGraphics.setColor(Color.WHITE);
+        }
+        int gachaX = centerX + 20;
+        backBufferGraphics.fillRoundRect(gachaX, tabY, tabWidth, tabHeight, 10, 10);
+        backBufferGraphics.setColor(Color.BLACK);
+        String gachaText = "GACHA";
+        textX = gachaX + (tabWidth - metrics.stringWidth(gachaText)) / 2;
+        backBufferGraphics.drawString(gachaText, textX, textY);
+    }
+
+    /**
+     * Draws the gacha screen with roulette animation.
+     */
+    public void drawGachaScreen(final Screen screen, final int coinBalance, final int gachaPrice,
+            final boolean isSpinning, final int rouletteIndex, final Color resultColor,
+            final String resultMessage, final boolean showResult, final boolean showRoulette) {
+        // Draw title
+        backBufferGraphics.setColor(Color.MAGENTA);
+        drawCenteredBigString(screen, "GACHA", screen.getHeight() / 10);
+        
+        // Draw coin balance at the top
+        backBufferGraphics.setColor(Color.YELLOW);
+        String balanceString = String.format("Coins: %d", coinBalance);
+        drawCenteredRegularString(screen, balanceString, 80);
+        
+        // Draw roulette area only if showRoulette is true
+        int centerX = screen.getWidth() / 2;
+        int rouletteY = screen.getHeight() / 2 - 80;
+        int rouletteSize = 300;
+        
+        if (showRoulette) {
+            // Draw roulette background
+            backBufferGraphics.setColor(new Color(30, 30, 30));
+            backBufferGraphics.fillRoundRect(centerX - rouletteSize / 2, rouletteY, rouletteSize, 100, 15, 15);
+            
+            // Show multiple colors scrolling
+            int colorsToShow = 5;
+            int colorWidth = rouletteSize / colorsToShow;
+            
+            for (int i = -2; i <= colorsToShow + 2; i++) {
+                int colorIndex = (rouletteIndex + i + ShipColorManager.GACHA_COLORS.length) 
+                        % ShipColorManager.GACHA_COLORS.length;
+                Color displayColor = ShipColorManager.GACHA_COLORS[colorIndex];
+                
+                int x = centerX - rouletteSize / 2 + (i * colorWidth);
+                backBufferGraphics.setColor(displayColor);
+                backBufferGraphics.fillRect(x, rouletteY + 10, colorWidth - 2, 80);
+                
+                // Draw color name
+                backBufferGraphics.setColor(Color.WHITE);
+                backBufferGraphics.setFont(fontSmall);
+                String colorName = ShipColorManager.getColorName(displayColor);
+                FontMetrics smallMetrics = backBufferGraphics.getFontMetrics();
+                int nameX = x + (colorWidth - smallMetrics.stringWidth(colorName)) / 2;
+                int nameY = rouletteY + 50;
+                backBufferGraphics.drawString(colorName, nameX, nameY);
+            }
+            
+            // Draw center indicator
+            backBufferGraphics.setColor(Color.YELLOW);
+            int indicatorX = centerX - 5;
+            backBufferGraphics.fillPolygon(
+                new int[]{indicatorX, indicatorX + 10, indicatorX + 5},
+                new int[]{rouletteY - 10, rouletteY - 10, rouletteY},
+                3
+            );
+        } else {
+            // Draw instruction when roulette is not shown
+            backBufferGraphics.setColor(Color.WHITE);
+            backBufferGraphics.setFont(fontRegular);
+            drawCenteredRegularString(screen, "Press SPACE to roll!", rouletteY + 50);
+        }
+        
+        // Draw result message
+        if (showResult && resultMessage != null && !resultMessage.isEmpty()) {
+            int popupWidth = 400;
+            int popupHeight = 60;
+            int popupX = screen.getWidth() / 2 - popupWidth / 2;
+            // Adjust popup position based on whether roulette is shown
+            int popupY = showRoulette ? rouletteY + 120 : rouletteY + 40;
+            
+            backBufferGraphics.setColor(new Color(0, 0, 0, 220));
+            backBufferGraphics.fillRoundRect(popupX, popupY, popupWidth, popupHeight, 15, 15);
+            
+            if (resultMessage.contains("NEW COLOR")) {
+                backBufferGraphics.setColor(Color.GREEN);
+            } else if (resultMessage.contains("Not enough")) {
+                backBufferGraphics.setColor(Color.RED);
+            } else {
+                backBufferGraphics.setColor(Color.YELLOW);
+            }
+            backBufferGraphics.drawRoundRect(popupX, popupY, popupWidth, popupHeight, 15, 15);
+            
+            backBufferGraphics.setFont(fontRegular);
+            backBufferGraphics.setColor(Color.WHITE);
+            drawCenteredRegularString(screen, resultMessage, popupY + popupHeight / 2 + 5);
+            
+            // Draw the result color if available
+            if (resultColor != null && resultMessage.contains("NEW COLOR")) {
+                int colorBoxSize = 40;
+                int colorBoxX = screen.getWidth() / 2 - colorBoxSize / 2;
+                int colorBoxY = popupY + popupHeight + 10;
+                backBufferGraphics.setColor(resultColor);
+                backBufferGraphics.fillRect(colorBoxX, colorBoxY, colorBoxSize, colorBoxSize);
+                backBufferGraphics.setColor(Color.WHITE);
+                backBufferGraphics.drawRect(colorBoxX, colorBoxY, colorBoxSize, colorBoxSize);
+            }
+        }
+        
+        // Draw roll button at the bottom
+        int buttonY = screen.getHeight() - 100;
+        int buttonWidth = 300;
+        int buttonHeight = 50;
+        int buttonX = screen.getWidth() / 2 - buttonWidth / 2;
+        
+        if (!isSpinning && coinBalance >= gachaPrice) {
+            backBufferGraphics.setColor(new Color(0, 150, 0));
+        } else {
+            backBufferGraphics.setColor(new Color(100, 100, 100));
+        }
+        backBufferGraphics.fillRoundRect(buttonX, buttonY, buttonWidth, buttonHeight, 10, 10);
+        backBufferGraphics.setColor(Color.WHITE);
+        backBufferGraphics.drawRoundRect(buttonX, buttonY, buttonWidth, buttonHeight, 10, 10);
+        
+        backBufferGraphics.setFont(fontRegular);
+        String buttonText = isSpinning ? "SPINNING..." : "ROLL (" + gachaPrice + " coins)";
+        FontMetrics buttonMetrics = backBufferGraphics.getFontMetrics();
+        int buttonTextX = buttonX + (buttonWidth - buttonMetrics.stringWidth(buttonText)) / 2;
+        int buttonTextY = buttonY + buttonHeight / 2 + buttonMetrics.getHeight() / 3;
+        backBufferGraphics.setColor(Color.WHITE);
+        backBufferGraphics.drawString(buttonText, buttonTextX, buttonTextY);
+        
+        // Draw instructions
+        backBufferGraphics.setColor(Color.GRAY);
+        String instructions = isSpinning ? "Spinning..." : "SPACE: Roll | ESC: Back";
+        drawCenteredRegularString(screen, instructions, screen.getHeight() - 40);
+    }
+
+    /**
      * Draws the starfield background.
      *
      * @param screen

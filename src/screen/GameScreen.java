@@ -192,7 +192,12 @@ public class GameScreen extends Screen {
         enemyShipFormation = new EnemyShipFormation(this.currentLevel);
         enemyShipFormation.attach(this);
         this.enemyShipFormation.applyEnemyColorByLevel(this.currentLevel);
-        this.ship = new Ship(this.width / 2 - 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.green);
+        
+        // Get selected color from ShipColorManager
+        engine.ShipColorManager colorManager = engine.ShipColorManager.getInstance();
+        java.awt.Color player1Color = colorManager.getSelectedColor();
+        
+        this.ship = new Ship(this.width / 2 - 100, ITEMS_SEPARATION_LINE_HEIGHT - 20, player1Color);
         this.ship.setPlayerId(1);   //=== [ADD] Player 1 ===
 
         this.shipP2 = new Ship(this.width / 2 + 100, ITEMS_SEPARATION_LINE_HEIGHT - 20,Color.pink);
