@@ -992,6 +992,23 @@ public final class DrawManager {
     }
 
     /**
+     * Draws the pause screen overlay on top of the current game screen.
+     *
+     * @param screen
+     *            Screen to draw on.
+     */
+    public void drawPauseOverlay(Screen screen) {
+        backBufferGraphics.setColor(new java.awt.Color(0, 0, 0, 200));
+        backBufferGraphics.fillRect(0, 0, screen.getWidth(), screen.getHeight());
+
+        backBufferGraphics.setColor(java.awt.Color.GREEN);
+        drawCenteredBigString(screen, "PAUSED", screen.getHeight() / 2 - 20);
+
+        backBufferGraphics.setColor(java.awt.Color.WHITE);
+        drawCenteredRegularString(screen, "Press P to resume", screen.getHeight() / 2 + 40);
+    }
+
+    /**
      * Draws the starfield background.
      *
      * @param screen

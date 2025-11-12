@@ -137,6 +137,8 @@ public class GameScreen extends Screen {
     /** Health change popup. */
     private String healthPopupText;
     private Cooldown healthPopupCooldown;
+    /* Track if pause key was pressed*/
+    private boolean pauseKeyPreviouslyDown = false;
 
     private GameState gameState;
 
@@ -255,6 +257,18 @@ public class GameScreen extends Screen {
         super.update();
 
         if (this.inputDelay.checkFinished() && !this.levelFinished) {
+
+            // Pause screen
+            boolean pauseKeyDown = inputManager.isP1KeyDown(KeyEvent.VK_P);
+
+            // Only pause is P was just pressed
+            if (pauseKeyDown && !pauseKeyPreviouslyDown) {
+                PauseScreen pauseScreen = new PauseScreen(this.width, this.height);
+                pauseScreen.initialize();
+                pauseScreen.run();
+            }
+
+            pauseKeyPreviouslyDown = pauseKeyDown;
 
             if (!this.gameTimer.isRunning()) {
                 this.gameTimer.start();
