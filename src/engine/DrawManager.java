@@ -67,7 +67,7 @@ public final class DrawManager {
         EnemyShipB1, EnemyShipB2, EnemyShipC1, EnemyShipC2, EnemyShipSpecial,
         FinalBoss1, FinalBoss2,FinalBossBullet,FinalBossDeath,OmegaBoss1, OmegaBoss2,OmegaBossDeath, Explosion, SoundOn, SoundOff, Item_MultiShot,
         Item_Atkspeed, Item_Penetrate, Item_Explode, Item_Slow, Item_Stop,
-        Item_Push, Item_Shield, Item_Heal
+        Item_Push, Item_Shield, Item_Heal, Portal
     }
 
     /**
@@ -107,6 +107,8 @@ public final class DrawManager {
             spriteMap.put(SpriteType.OmegaBoss1, new boolean[32][14]);
             spriteMap.put(SpriteType.OmegaBoss2, new boolean[32][14]);
             spriteMap.put(SpriteType.OmegaBossDeath, new boolean[16][16]);
+            // Portal sprite temporarily commented out - will cause error if graphics file doesn't have it
+            // spriteMap.put(SpriteType.Portal, new boolean[8][8]);
             fileManager.loadSprite(spriteMap);
             logger.info("Finished loading the sprites.");
 
@@ -169,6 +171,10 @@ public final class DrawManager {
      */
     public void drawEntity(final Entity entity, final int positionX, final int positionY) {
         boolean[][] image = spriteMap.get(entity.getSpriteType());
+        if (image == null) {
+            logger.warning("Sprite not found for type: " + entity.getSpriteType());
+            return;
+        }
         backBufferGraphics.setColor(entity.getColor());
         for (int i = 0; i < image.length; i++)
             for (int j = 0; j < image[i].length; j++)
@@ -314,6 +320,27 @@ public final class DrawManager {
         backBufferGraphics.setColor(Color.GREEN);
         backBufferGraphics.drawLine(0, positionY, screen.getWidth(), positionY);
         backBufferGraphics.drawLine(0, positionY + 1, screen.getWidth(), positionY + 1);
+    }
+
+    /**
+     * Draws a portal as a simple filled square.
+     * 
+     * @param positionX X position of the portal.
+     * @param positionY Y position of the portal.
+     * @param width Width of the portal.
+     * @param height Height of the portal.
+     * @param color Color of the portal.
+     */
+    public void drawPortal(final int positionX, final int positionY, final int width, final int height, final Color color) {
+        // Use green color to match game theme (same as game UI elements)
+        backBufferGraphics.setColor(Color.GREEN);
+        backBufferGraphics.fillRect(positionX, positionY, width, height);
+        // Draw inner border in darker green for depth
+        backBufferGraphics.setColor(new Color(0, 150, 0));
+        backBufferGraphics.drawRect(positionX + 2, positionY + 2, width - 4, height - 4);
+        // Draw outer border in bright green for visibility
+        backBufferGraphics.setColor(Color.GREEN);
+        backBufferGraphics.drawRect(positionX, positionY, width, height);
     }
 
     /**
