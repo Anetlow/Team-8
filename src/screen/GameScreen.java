@@ -84,6 +84,8 @@ public class GameScreen extends Screen {
     private Set<Bullet> bullets;
     /** Set of all dropItems dropped by on screen ships. */
     private Set<DropItem> dropItems;
+    /** Set of all portals on screen. */
+    private Set<Portal> portals;
     /** Current score. */
     private int score;
     // === [ADD] Independent scores for two players ===
@@ -221,6 +223,27 @@ public class GameScreen extends Screen {
         this.screenFinishedCooldown = Core.getCooldown(SCREEN_CHANGE_INTERVAL);
         this.bullets = new HashSet<Bullet>();
         this.dropItems = new HashSet<DropItem>();
+        this.portals = new HashSet<Portal>();
+        
+        // Initialize portals from level data
+        try {
+            if (this.currentLevel.getPortals() != null) {
+                for (engine.level.PortalData portalData : this.currentLevel.getPortals()) {
+                    java.awt.Color portalColor = parseColor(portalData.getColor());
+                    Portal portal = new Portal(
+                        portalData.getPositionX(),
+                        portalData.getPositionY(),
+                        portalData.getPortalId(),
+                        portalData.getTargetPortalId(),
+                        portalColor
+                    );
+                    this.portals.add(portal);
+                }
+            }
+        } catch (Exception e) {
+            this.logger.warning("Failed to initialize portals: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // Special input delay / countdown.
         this.gameStartTime = System.currentTimeMillis();
@@ -408,6 +431,8 @@ public class GameScreen extends Screen {
         manageBulletShipCollisions();
         manageShipEnemyCollisions();
         manageItemCollisions();
+        managePortalCollisions();
+        updatePortals();
         cleanBullets();
         draw();
 
@@ -472,6 +497,19 @@ public class GameScreen extends Screen {
 
         for (DropItem dropItem : this.dropItems)
             drawManager.drawEntity(dropItem, dropItem.getPositionX(), dropItem.getPositionY());
+
+        if (this.portals != null) {
+            for (Portal portal : this.portals) {
+                // Draw portal as a simple square
+                drawManager.drawPortal(
+                    portal.getPositionX(), 
+                    portal.getPositionY(), 
+                    portal.getWidth(), 
+                    portal.getHeight(), 
+                    portal.getColor()
+                );
+            }
+        }
 
         // Interface.
         // Display game elements depending on the number of active players
@@ -786,6 +824,112 @@ public class GameScreen extends Screen {
                         + " lives remaining.");
                 return;
             }
+        }
+    }
+
+    /**
+     * Manages collisions between player ship and portals.
+     * Teleports the ship when it collides with a portal.
+     */
+    private void managePortalCollisions() {
+        if (this.levelFinished || this.portals == null || this.portals.isEmpty()) {
+            return;
+        }
+
+        // Check P1 collision with portals
+        if (this.livesP1 > 0 && !this.ship.isDestroyed()) {
+            for (Portal portal : this.portals) {
+                if (portal.canTeleport() && checkCollision(this.ship, portal)) {
+                    // Find the target portal
+                    Portal targetPortal = null;
+                    for (Portal p : this.portals) {
+                        if (p.getPortalId() == portal.getTargetPortalId()) {
+                            targetPortal = p;
+                            break;
+                        }
+                    }
+                    
+                    if (targetPortal != null) {
+                        // Teleport the ship to the target portal
+                        this.ship.setPositionX(targetPortal.getPositionX() + targetPortal.getWidth() / 2 - this.ship.getWidth() / 2);
+                        this.ship.setPositionY(targetPortal.getPositionY() + targetPortal.getHeight() / 2 - this.ship.getHeight() / 2);
+                        portal.markTeleportUsed();
+                        targetPortal.markTeleportUsed();
+                        this.logger.info("Player 1 teleported from portal " + portal.getPortalId() + " to portal " + targetPortal.getPortalId());
+                    }
+                }
+            }
+        }
+
+        // Check P2 collision with portals
+        if (this.shipP2 != null && this.livesP2 > 0 && !this.shipP2.isDestroyed()) {
+            for (Portal portal : this.portals) {
+                if (portal.canTeleport() && checkCollision(this.shipP2, portal)) {
+                    // Find the target portal
+                    Portal targetPortal = null;
+                    for (Portal p : this.portals) {
+                        if (p.getPortalId() == portal.getTargetPortalId()) {
+                            targetPortal = p;
+                            break;
+                        }
+                    }
+                    
+                    if (targetPortal != null) {
+                        // Teleport the ship to the target portal
+                        this.shipP2.setPositionX(targetPortal.getPositionX() + targetPortal.getWidth() / 2 - this.shipP2.getWidth() / 2);
+                        this.shipP2.setPositionY(targetPortal.getPositionY() + targetPortal.getHeight() / 2 - this.shipP2.getHeight() / 2);
+                        portal.markTeleportUsed();
+                        targetPortal.markTeleportUsed();
+                        this.logger.info("Player 2 teleported from portal " + portal.getPortalId() + " to portal " + targetPortal.getPortalId());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Updates all portals on screen.
+     */
+    private void updatePortals() {
+        if (this.portals != null) {
+            for (Portal portal : this.portals) {
+                portal.update();
+            }
+        }
+    }
+
+    /**
+     * Parses a color string from JSON to a Color object.
+     * 
+     * @param colorString Color name (e.g., "purple", "cyan", "magenta")
+     * @return Color object, defaults to MAGENTA if color is not recognized
+     */
+    private java.awt.Color parseColor(String colorString) {
+        if (colorString == null) {
+            return Color.MAGENTA;
+        }
+        
+        switch (colorString.toLowerCase()) {
+            case "purple":
+                return Color.MAGENTA;
+            case "cyan":
+                return Color.CYAN;
+            case "magenta":
+                return Color.MAGENTA;
+            case "blue":
+                return Color.BLUE;
+            case "green":
+                return Color.GREEN;
+            case "yellow":
+                return Color.YELLOW;
+            case "orange":
+                return Color.ORANGE;
+            case "pink":
+                return Color.PINK;
+            case "red":
+                return Color.RED;
+            default:
+                return Color.MAGENTA;
         }
     }
 

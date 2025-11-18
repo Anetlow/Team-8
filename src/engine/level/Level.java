@@ -29,6 +29,7 @@ public class Level {
 
     private CompletionBonus completionBonus;
     private String achievementTrigger;
+    private List<PortalData> portals;
 
 
     /**
@@ -76,6 +77,12 @@ public class Level {
 
         if (map.get("completionBonus") != null) {
             this.completionBonus = new CompletionBonus((Map<String, Object>) map.get("completionBonus"));
+        }
+        if (map.get("portals") != null) {
+            this.portals = new ArrayList<>();
+            for (Map<String, Object> portalMap : (List<Map<String, Object>>) map.get("portals")) {
+                this.portals.add(new PortalData(portalMap));
+            }
         }
 
         // Fallback for simple fields from the enemy formation
@@ -144,5 +151,9 @@ public class Level {
 
     public String getUnlockCondition() {
         return unlockCondition;
+    }
+
+    public List<PortalData> getPortals() {
+        return portals;
     }
 }
