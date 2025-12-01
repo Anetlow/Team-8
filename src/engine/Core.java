@@ -275,6 +275,13 @@ public final class Core {
 					LOGGER.info("Starting " + currentScreen.getClass().getSimpleName() + " screen.");
 					returnCode = frame.setScreen(currentScreen);
 					break;
+                case 9:
+                    // PvP duel mode
+                    currentScreen = new PvPScreen(width, height, FPS);
+                    LOGGER.info("Starting PvP screen at " + FPS + " fps.");
+                    returnCode = frame.setScreen(currentScreen);
+                    LOGGER.info("Closing PvP screen.");
+                    break;
                 default:
                     break;
             }
