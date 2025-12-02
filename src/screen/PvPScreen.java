@@ -188,7 +188,7 @@ public class PvPScreen extends Screen {
             this.playerTop.destroy();
             this.livesTop--;
             if (this.livesTop <= 0) {
-                declareWinner("Player 1 gagne !");
+                declareWinner("Player 1 wins!");
             }
         }
         if (!bullet.penetration()) {
@@ -201,7 +201,7 @@ public class PvPScreen extends Screen {
             this.playerBottom.destroy();
             this.livesBottom--;
             if (this.livesBottom <= 0) {
-                declareWinner("Player 2 gagne !");
+                declareWinner("Player 2 wins!");
             }
         }
         if (!bullet.penetration()) {
@@ -237,7 +237,7 @@ public class PvPScreen extends Screen {
         drawManager.drawLives(this, this.livesBottom);
         drawManager.drawLivesP2(this, this.livesTop);
 
-        drawManager.drawCenteredRegularString(this, "Mode PvP - WASD + SPACE vs. Fleches + ENTREE", 40);
+        drawManager.drawCenteredRegularString(this, "PvP Mode - WASD + SPACE vs. ARROWS + ENTER", 70);
 
         if (this.matchOver && this.winnerText != null) {
             drawManager.drawGameOver(this, false, false);
