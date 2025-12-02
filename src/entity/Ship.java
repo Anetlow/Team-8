@@ -35,6 +35,15 @@ public class Ship extends Entity {
     private int playerId = 1;
     public void setPlayerId(int pid) { this.playerId = pid; }
     public int getPlayerId() { return this.playerId; }
+    /** Direction multiplier for bullets: 1 = upwards (default), -1 = downwards. */
+    private int bulletDirection = 1;
+    /**
+     * Sets whether this ship shoots upwards (default) or downwards.
+     * @param shootsUpwards True to shoot upwards, false for downwards.
+     */
+    public void setShootsUpwards(final boolean shootsUpwards) {
+        this.bulletDirection = shootsUpwards ? 1 : -1;
+    }
 
 	/**
 	 * Constructor, establishes the ship's properties.
@@ -107,11 +116,12 @@ public class Ship extends Entity {
 			int spacing = ShopItem.getMultiShotSpacing();
 
 			int centerX = positionX + this.width / 2;
-			int centerY = positionY;
+			int centerY = (this.bulletDirection == 1) ? positionY : positionY + this.height;
+            int bulletSpeed = BULLET_SPEED * this.bulletDirection;
 
 			if (bulletCount == 1) {
 				// Normal shot (when Spread Shot is not purchased)
-				Bullet b = BulletPool.getBullet(centerX, centerY, BULLET_SPEED);
+				Bullet b = BulletPool.getBullet(centerX, centerY, bulletSpeed);
 				SoundManager.stop("sfx/laser.wav");
                 SoundManager.play("sfx/laser.wav");
                 b.setOwnerId(this.playerId);  // === [ADD] Ownership flag: 1 = P1, 2 = P2, null for legacy logic ===
@@ -123,7 +133,7 @@ public class Ship extends Entity {
 
 				for (int i = 0; i < bulletCount; i++) {
 					int offsetX = startOffset + (i * spacing);
-                    Bullet b = BulletPool.getBullet(centerX + offsetX, centerY, BULLET_SPEED);
+                    Bullet b = BulletPool.getBullet(centerX + offsetX, centerY, bulletSpeed);
                     b.setOwnerId(this.playerId);   // Ownership flag
 
                     bullets.add(b);

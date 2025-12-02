@@ -360,6 +360,7 @@ public final class DrawManager {
      */
     public void drawMenu(final Screen screen, final int option) {
         String playString = "Play";
+        String pvpString = "PvP Duel";
         String highScoresString = "High scores";
         String achievementsString = "Achievements";
         String customizationString = "Customization";
@@ -374,25 +375,29 @@ public final class DrawManager {
         else backBufferGraphics.setColor(Color.WHITE);
         drawCenteredRegularString(screen, playString, screen.getHeight() / 3 * 2);
 
+        if (option == 9) backBufferGraphics.setColor(pulseColor);
+        else backBufferGraphics.setColor(Color.WHITE);
+        drawCenteredRegularString(screen, pvpString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 1);
+
         if (option == 3) backBufferGraphics.setColor(pulseColor);
         else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, highScoresString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 1);
+        drawCenteredRegularString(screen, highScoresString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
 
         if (option == 6) backBufferGraphics.setColor(pulseColor);
         else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, achievementsString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 2);
+        drawCenteredRegularString(screen, achievementsString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
 
         if (option == 7) backBufferGraphics.setColor(pulseColor);
         else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, customizationString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 3);
+        drawCenteredRegularString(screen, customizationString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 4);
 
         if (option == 4) backBufferGraphics.setColor(pulseColor);
         else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, shopString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 4);
+        drawCenteredRegularString(screen, shopString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 5);
 
         if (option == 0) backBufferGraphics.setColor(pulseColor);
         else backBufferGraphics.setColor(Color.WHITE);
-        drawCenteredRegularString(screen, exitString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 5);
+        drawCenteredRegularString(screen, exitString, screen.getHeight() / 3 * 2 + fontRegularMetrics.getHeight() * 6);
     }
 
     //1 or 2-player mode selection buttons

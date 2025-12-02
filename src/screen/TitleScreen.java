@@ -327,6 +327,9 @@ public class TitleScreen extends Screen {
         switch (this.returnCode)
         {
             case 2:
+                this.returnCode = 9;
+                break;
+            case 9:
                 this.returnCode = 3;
                 break;
             case 3:
@@ -374,6 +377,9 @@ public class TitleScreen extends Screen {
                 this.returnCode = 3;
                 break;
             case 3:
+                this.returnCode = 9;
+                break;
+            case 9:
                 this.returnCode = 2;
                 break;
             case 5:
