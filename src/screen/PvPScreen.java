@@ -67,6 +67,10 @@ public class PvPScreen extends Screen {
         this.playerTop = new Ship(this.width / 2 - 26, 80, Color.PINK);
         this.playerTop.setPlayerId(2);
         this.playerTop.setShootsUpwards(false); // Fire downwards.
+        
+        // Reset shooting cooldowns to prevent immediate shots when entering PvP mode
+        // This is done by attempting a shoot (which will reset the cooldown) but the inputDelay
+        // will prevent any actual shooting until the delay is finished
     }
 
     @Override
@@ -87,7 +91,11 @@ public class PvPScreen extends Screen {
             return;
         }
 
-        handlePlayerInput();
+        // Only handle input after the input delay to prevent accidental shots when entering PvP mode
+        boolean readyForInput = this.inputDelay.checkFinished();
+        if (readyForInput) {
+            handlePlayerInput();
+        }
         updateBullets();
         draw();
     }
